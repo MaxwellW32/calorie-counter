@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from 'react'
-import { getFoodItems, getGoogleSheetData } from '@/serverFunctions/handleApi'
+import { getFoodItems } from '@/serverFunctions/handleApi'
 import { food, foodSchema } from '@/types'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -25,14 +25,11 @@ export default function Page() {
     //each inner array is column data
     //first row has only column names
     const foodsFromSheets = await getFoodItems()
-    if (foodsFromSheets === undefined) return
-
-    const foodValues = foodsFromSheets.values
-    if (foodValues === null || foodValues === undefined) return
+    if (foodsFromSheets === null || foodsFromSheets === undefined) return
 
     const foodsFormatted: food[] = []
 
-    foodValues.forEach((eachFoodRow, eachFoodRowIndex) => {
+    foodsFromSheets.forEach((eachFoodRow, eachFoodRowIndex) => {
       //dont needx column names row
       if (eachFoodRowIndex === 0) return
 
@@ -49,6 +46,7 @@ export default function Page() {
       if (verifiedFoodCheck.success) {
         console.log(`$verifiedFoodObj`, verifiedFoodCheck);
         foodsFormatted.push(verifiedFoodCheck.data)
+
       } else {
         console.log(`$couldn't add`, foodFormmattedObj);
       }
@@ -60,11 +58,6 @@ export default function Page() {
 
   return (
     <div>
-      <button onClick={async () => {
-        const results = await getGoogleSheetData()
-        console.log(`$results`, results);
-      }}>test</button>
-
       <Link href={`/addFood`}>
         <button>Add Food</button>
       </Link>

@@ -6,7 +6,7 @@ import TextInput from '@/components/textInput/TextInput'
 import styles from "./page.module.css"
 import { newFoodSchema, newFood } from '@/types'
 import Image from 'next/image'
-import { appendGoogleSheetData } from '@/serverFunctions/handleApi'
+import { addFoodItem } from '@/serverFunctions/handleApi'
 
 
 export default function Page() {
@@ -80,8 +80,7 @@ export default function Page() {
 
       if (!newFoodSchema.safeParse(finalFoodObj).success) return toast.error("Form not valid")
 
-      // await addFoodItem(finalFoodObj)
-      await appendGoogleSheetData(finalFoodObj)
+      await addFoodItem(finalFoodObj)
 
       toast.success("Added food!")
 
