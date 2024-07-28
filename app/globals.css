@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color1: #ff7700;
+  --color2: #F4F7FC;
+  --color3: #0582f0;
+  --gray1: #eee;
+
+  --largeFontSize: 1.5rem;
+  --mediumFontSize: 1.3rem;
+  --normalFontSize: 1rem;
+
+  --boldFontWeight: 400;
+  --mediumFontWeight: 200;
+}
+
+*,
+*::before,
+*::after {
+  /* border: 1px solid red !important; */
+}
+
+
+label {
+  font-size: var(--mediumFontSize);
+  font-weight: var(--boldFontWeight);
+}
+
+input,
+textarea {
+  padding: 1rem;
+  background-color: var(--color2);
+  border-radius: .2rem;
+  border: 1px solid #ddd;
+}
+
+input:focus,
+textarea:focus {
+  background-color: #fff;
+  outline: none;
+}
+
+
+button {
+  cursor: pointer;
+  padding: .5rem 1rem;
+  background-color: aliceblue;
+  transition: background-color 400ms;
+}
+
+button:hover {
+  background-color: hsl(208, 100%, 90%);
+}
+
+
+svg {
+  width: 1rem;
+  aspect-ratio: 1/1;
+}
+
+
+h1 {
+  font-weight: var(--boldFontWeight);
+  font-size: var(--largeFontSize);
+}
+
+h2 {
+  font-size: var(--mediumFontSize);
+}
+
+h3 {
+  font-weight: var(--boldFontWeight);
+}
+
+
+.snap {
+  scroll-snap-type: x mandatory;
+}
+
+.snap>* {
+  scroll-snap-align: start;
+}
