@@ -7,7 +7,7 @@ export default async function Page({ params }: { params: { id: string } }) {
     if (formattedFoods === undefined) return <div>Error formatting foods</div>
 
     const foundFoodIndex = formattedFoods.findIndex(eachFood => eachFood.id === params.id)
-    if (foundFoodIndex < 0) return <div>Couldn't find food</div>
+    if (foundFoodIndex < 0) return <div>Couldn&apos;t find food</div>
 
     return (
         <main>
