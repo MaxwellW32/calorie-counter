@@ -5,56 +5,20 @@ import { food, foodSchema } from '@/types'
 import Link from 'next/link'
 import Image from 'next/image'
 import { defaultFoodImage } from '@/utility/globalState'
+import { formatAndAddFoods } from '@/utility/formatSheetData'
+import FoodSearchBar from '@/components/foodSearchBar/FoodSearchBar'
 
-//create food obj type...
-//accept new food obj...
-//uses excel storage - fetches latest from sheet...
-//stores new food records - syncs them to excel
-//allow searching 
 //convert calories per gram into item
 // Record total calories per day - give reports
 // Calories lost - lbs lost
 //implement quality, and amount slider
 //daily check - current/previous for streak
 // Daily checker - current day/previous day checked 
+
+//load up all foods ahead of time and store it
+//use it in the search
 export default function Page() {
-  const [allFoods, allFoodsSet] = useState<food[]>([])
-
-  async function formatAndAddFoods() {
-    //each outer array is row
-    //each inner array is column data
-    //first row has only column names
-    const foodsFromSheets = await getFoodItems()
-    if (foodsFromSheets === null || foodsFromSheets === undefined) return
-
-    const foodsFormatted: food[] = []
-
-    foodsFromSheets.forEach((eachFoodRow, eachFoodRowIndex) => {
-      //dont needx column names row
-      if (eachFoodRowIndex === 0) return
-
-      //name, image, calories, weightInGrams
-      const foodFormmattedObj: food = {
-        id: eachFoodRow[0],
-        name: eachFoodRow[1],
-        image: eachFoodRowIndex === 12 ? null : eachFoodRow[2],
-        calories: parseFloat(eachFoodRow[3]),
-        weightInGrams: parseFloat(eachFoodRow[4])
-      }
-
-      const verifiedFoodCheck = foodSchema.safeParse(foodFormmattedObj)
-      if (verifiedFoodCheck.success) {
-        console.log(`$verifiedFoodObj`, verifiedFoodCheck);
-        foodsFormatted.push(verifiedFoodCheck.data)
-
-      } else {
-        console.log(`$couldn't add`, foodFormmattedObj);
-      }
-    })
-
-    console.log(`$foodsFormatted`, foodsFormatted);
-    allFoodsSet(foodsFormatted)
-  }
+  const [allFoodItems, allFoodItemsSet] = useState<food[]>([])
 
   return (
     <div>
@@ -62,12 +26,21 @@ export default function Page() {
         <button>Add Food</button>
       </Link>
 
-      <button onClick={formatAndAddFoods}>get foods</button>
+      <button onClick={async () => {
+        const formattedFoods = await formatAndAddFoods()
+        if (formattedFoods === undefined) return
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(250px, 100%), 1fr))", gap: "1rem", padding: "1rem" }}>
-        {allFoods.map(eachFood => {
+        allFoodItemsSet(formattedFoods)
+      }}>get foods</button>
+
+      <FoodSearchBar allFoodItems={allFoodItems} />
+
+      {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(250px, 100%), 1fr))", gap: "1rem", padding: "1rem" }}>
+        {allFoodItems.map(eachFood => {
           return (
-            <div key={eachFood.id} style={{ display: "grid", gap: ".5rem", padding: '1rem', backgroundColor: "var(--gray1)" }}>
+            <div key={eachFood.id} style={{ display: "grid", gap: ".5rem", padding: '1rem', backgroundColor: "var(--gray1)", position: "relative" }}>
+              <Link href={`editFood/${eachFood.id}`}>edit</Link>
+
               <div style={{ width: "min(300px, 100%)", aspectRatio: "1/1" }}>
                 <Image height={300} width={300} alt={`${eachFood.name} image`} src={eachFood.image === "" ? defaultFoodImage : eachFood.image} style={{ objectFit: "cover", height: "100%", width: "100%" }} />
               </div>
@@ -78,7 +51,7 @@ export default function Page() {
             </div>
           )
         })}
-      </div>
+      </div> */}
     </div>
   )
 }
