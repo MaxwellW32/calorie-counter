@@ -1,5 +1,5 @@
 "use server"
-import { food, newFood } from "@/types"
+import { food, foodSchema, foodEatenToday, foodEatenTodaySchema, newFood, foodEatenTodayRecord, foodEatenTodayRecordSchema } from "@/types"
 import { google } from "googleapis"
 import { v4 as uuidV4 } from "uuid"
 
@@ -22,7 +22,35 @@ export async function getFoodItems() {
         range: "foods",
     });
 
-    return response.data.values;
+    const foodsFromSheets = response.data.values;
+
+    if (foodsFromSheets === null || foodsFromSheets === undefined) throw new Error("nothing from sheets")
+
+    const foodsFormatted: food[] = []
+
+    foodsFromSheets.forEach((eachFoodRow, eachFoodRowIndex) => {
+        //dont needx column names row
+        if (eachFoodRowIndex === 0) return
+
+        //name, image, calories, weightInGrams
+        const foodFormmattedObj: food = {
+            id: eachFoodRow[0],
+            name: eachFoodRow[1],
+            image: eachFoodRow[2],
+            calories: parseFloat(eachFoodRow[3]),
+            weightInGrams: parseFloat(eachFoodRow[4])
+        }
+
+        const verifiedFoodCheck = foodSchema.safeParse(foodFormmattedObj)
+        if (verifiedFoodCheck.success) {
+            foodsFormatted.push(verifiedFoodCheck.data)
+
+        } else {
+            console.log(`$couldn't add`, foodFormmattedObj);
+        }
+    })
+
+    return foodsFormatted
 }
 
 export async function addFoodItem(foodItem: newFood) {
@@ -33,7 +61,6 @@ export async function addFoodItem(foodItem: newFood) {
 
     await sheets.spreadsheets.values.append({
         spreadsheetId,
-        // range: "foods!A:A",
         range: "foods",
         valueInputOption: "USER_ENTERED",
         insertDataOption: "INSERT_ROWS",
@@ -46,14 +73,12 @@ export async function addFoodItem(foodItem: newFood) {
 }
 
 export async function updateFoodItem(foodItem: food, index: number) {
-    console.log(`$received`, foodItem, index);
-
-    const spreadRow = index + 1 //rows start at 1
-    console.log("range", `${spreadRow}:${spreadRow}`);
+    const spreadRow = index + 1 + 1 //rows start at 1 + column name offset
 
     await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `${spreadRow}:${spreadRow}`,
+        // range: `${spreadRow}:${spreadRow}`,
+        range: `foods!${spreadRow}:${spreadRow}`,
         valueInputOption: "USER_ENTERED",
         requestBody: {
             values: [
@@ -66,6 +91,101 @@ export async function updateFoodItem(foodItem: food, index: number) {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+//food records
+export async function getFoodsEatenToday() {
+    const sheets = google.sheets({ version: "v4", auth: jwt });
+    const response = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: "eatenToday",
+    });
+
+    const foodsEatenTodayRecordsFromSheets = response.data.values;
+
+    if (foodsEatenTodayRecordsFromSheets === null || foodsEatenTodayRecordsFromSheets === undefined) throw new Error("nothing from sheets")
+
+    const foodRecordsFormatted: foodEatenTodayRecord[] = []
+
+    foodsEatenTodayRecordsFromSheets.forEach((eachFoodRow, eachFoodRowIndex) => {
+        //dont needx column names row
+        if (eachFoodRowIndex === 0) return
+
+        //name, image, calories, weightInGrams
+        const foodRecordFormmattedObj: foodEatenTodayRecord = {
+            foodId: eachFoodRow[0],
+            quantity: parseFloat(eachFoodRow[1]),
+            recordedWeight: parseFloat(eachFoodRow[2]),
+        }
+
+        const verifiedFoodCheck = foodEatenTodayRecordSchema.safeParse(foodRecordFormmattedObj)
+        if (verifiedFoodCheck.success) {
+            foodRecordsFormatted.push(verifiedFoodCheck.data)
+
+        } else {
+            console.log(`$couldn't add`, foodRecordFormmattedObj);
+        }
+    })
+
+
+    const seenFoodItems = await getFoodItems()
+
+    const foodsEatenToday: foodEatenToday[] = []
+
+    foodRecordsFormatted.forEach(eachRecord => {
+        seenFoodItems.forEach(eachFoodItem => {
+            if (eachRecord.foodId === eachFoodItem.id) {
+                const newFoodEatenToday: foodEatenToday = {
+                    ...eachFoodItem,
+                    quantity: eachRecord.quantity,
+                    recordedWeight: eachRecord.recordedWeight
+                }
+
+                foodsEatenToday.push(newFoodEatenToday)
+            }
+        })
+    })
+
+    return foodsEatenToday
+}
+
+export async function addFoodEatenToday(foodEatenTodayRecord: foodEatenTodayRecord) {
+    await sheets.spreadsheets.values.append({
+        spreadsheetId,
+        range: "eatenToday",
+        valueInputOption: "USER_ENTERED",
+        insertDataOption: "INSERT_ROWS",
+        requestBody: {
+            values: [
+                [foodEatenTodayRecord.foodId, foodEatenTodayRecord.quantity, foodEatenTodayRecord.recordedWeight],
+            ]
+        }
+    })
+}
+
+export async function updateFoodEatenToday(foodEatenTodayRecord: foodEatenTodayRecord, index: number) {
+    const spreadRow = index + 1 + 1 //rows start at 1 + column name offset
+
+    await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `eatenToday!${spreadRow}:${spreadRow}`,
+        valueInputOption: "USER_ENTERED",
+        requestBody: {
+            values: [
+                [foodEatenTodayRecord.foodId, foodEatenTodayRecord.quantity, foodEatenTodayRecord.recordedWeight],
+            ]
+        }
+    })
+}
 
 
 

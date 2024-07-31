@@ -1,17 +1,29 @@
 import AddUpdateFood from '@/components/food/AddUpdateFood';
-import { formatAndAddFoods } from '@/utility/formatSheetData';
+import { getFoodItems } from '@/serverFunctions/handleApi';
+import { food } from '@/types';
 import React from 'react'
+import { toast } from 'react-hot-toast';
+
+// async function checkAndDisplayErrors<T>(functionToCall: () => Promise<T>){
+//         return await functionToCall()
+// }
 
 export default async function Page({ params }: { params: { id: string } }) {
-    const formattedFoods = await formatAndAddFoods()
-    if (formattedFoods === undefined) return <div>Error formatting foods</div>
+    let foodItems: food[] = []
 
-    const foundFoodIndex = formattedFoods.findIndex(eachFood => eachFood.id === params.id)
+    try {
+        foodItems = await getFoodItems()
+    } catch (error) {
+        toast.error("couldn't get food items")
+        console.log(`$couldn't get food items`, error);
+    }
+
+    const foundFoodIndex = foodItems.findIndex(eachFood => eachFood.id === params.id)
     if (foundFoodIndex < 0) return <div>Couldn&apos;t find food</div>
 
     return (
         <main>
-            <AddUpdateFood oldFoodItem={formattedFoods[foundFoodIndex]} oldFoodIndex={foundFoodIndex} />
+            <AddUpdateFood oldFoodItem={foodItems[foundFoodIndex]} oldFoodIndex={foundFoodIndex} />
         </main>
     )
 }
